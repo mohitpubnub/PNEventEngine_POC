@@ -1,2 +1,3 @@
 # PNEventEngine_POC
-EventEngine POC
+
+EventEngine base infrastructure for C# SDK.
