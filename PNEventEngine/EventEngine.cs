@@ -19,6 +19,7 @@ namespace PNEventEngine
 		public List<string> Channels { get; set; }
 		public List<string> ChannelGroups { get; set; }
 		public string Timetoken { get; set; }
+		public int? ReconnectionAttemptsMade { get; set; }
 		public int? Region { get; set; }
 
 		public Exception exception { get; set; }
@@ -32,7 +33,9 @@ namespace PNEventEngine
 		ReceiveSuccess,
 		HandshakeFailed,
 		ReceiveFailed,
-		ReconnectionFailed
+		ReconnectionFailed,
+		HandshakeReconnectionFailed,
+		Giveup
 	}
 
 	public class ExtendedState
@@ -91,7 +94,6 @@ namespace PNEventEngine
 				UpdateContext(e.EventPayload);
 				if (CurrentState.Effects.Count > 0) {
 					foreach (var effect in CurrentState.Effects) {
-						Console.WriteLine("Found effect "+ effect);
 						dispatcher.dispatch(effect, this.context);
 					}
 				}
@@ -113,6 +115,7 @@ namespace PNEventEngine
 			if (eventData.ChannelGroups != null) context.ChannelGroups = eventData.ChannelGroups;
 			if (eventData.Timetoken != null) context.Timetoken = eventData.Timetoken;
 			if (eventData.Region != null) context.Region = eventData.Region;
+			if (eventData.ReconnectionAttemptsMade != null) context.AttemptedReconnection = eventData.ReconnectionAttemptsMade??0;
 		}
 
 		public void InitialState(State state)

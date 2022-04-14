@@ -5,39 +5,31 @@ using Newtonsoft.Json;
 
 namespace PNEventEngine
 {
-	public class HandshakeResponse
-	{
-		[JsonProperty("t")]
-		public Timetoken Timetoken { get; set; }
-
-		[JsonProperty("m")]
-		public object[] Messages { get; set; }
-	}
-
-	public class Timetoken
-	{
-		[JsonProperty("t")]
-		public string Timestamp { get; set; }
-
-		[JsonProperty("r")]
-		public int Region { get; set; }
-
-	}
-
-	public class HandshakeEffectHandler : IEffectHandler
+	public class HandshakeReconnectingEffectHandler : IEffectHandler
 	{
 		EventEmitter emitter;
 		HttpClient httpClient;
-		public HandshakeEffectHandler(HttpClient client, EventEmitter emitter)
+		IDelayUtil delayUtil;
+
+		public HandshakeReconnectingEffectHandler(HttpClient client, EventEmitter emitter, IDelayUtil delayUtil)
 		{
 			this.emitter = emitter;
-			httpClient = client;
+			this.httpClient = client;
+			this.delayUtil = delayUtil;
 		}
 
 		public async void Start(ExtendedState context)
 		{
 			var evnt = new Event();
-			// TODO: Replace with Stateless Utility Methods
+
+			if (delayUtil.ShouldGiveup(context.AttemptedReconnection)) {
+				evnt.Type = EventType.Giveup;
+				emitter.emit(evnt);
+				return;
+			}
+
+			await Task.Run(() => delayUtil.Delay(context.AttemptedReconnection));
+
 			try {
 				var res = await httpClient.GetAsync($"https://ps.pndsn.com/v2/subscribe/demo/{String.Join(",", context.Channels.ToArray())}/0?uuid=cSharpTest&tt=0&tr=0&channel-group={String.Join(", ", context.ChannelGroups.ToArray())}");
 				var handshakeResponse = JsonConvert.DeserializeObject<HandshakeResponse>(await res.Content.ReadAsStringAsync());
@@ -45,14 +37,16 @@ namespace PNEventEngine
 				evnt.EventPayload.Region = handshakeResponse.Timetoken.Region;
 				evnt.Type = EventType.HandshakeSuccess;
 			} catch (Exception ex) {
-				evnt.Type = EventType.HandshakeFailed;
+				evnt.Type = EventType.HandshakeReconnectionFailed;
+				evnt.EventPayload.ReconnectionAttemptsMade += 1;
 				evnt.EventPayload.exception = ex;
 			}
 			emitter.emit(evnt);
 		}
+
 		public void Cancel()
 		{
-			Console.WriteLine("Handshake can not be cancelled. Something is not right here!");
+			Console.WriteLine("Handshake Reconnection attempt Cancelled!!!");
 		}
 	}
 }

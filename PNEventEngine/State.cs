@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace PNEventEngine
 {
 
-	public enum StateType { Unsubscribed, Handshaking, Receiving, HandshakingFailed, ReconnectingFailed, Reconnecting };
+	public enum StateType { Unsubscribed, Handshaking, Receiving, HandshakingFailed, ReconnectingFailed, Reconnecting, HandshakeReconnecting };
 
 	public class State
 	{
