@@ -91,6 +91,7 @@ namespace PNEventEngine
 				UpdateContext(e.EventPayload);
 				if (CurrentState.Effects.Count > 0) {
 					foreach (var effect in CurrentState.Effects) {
+						Console.WriteLine("Found effect "+ effect);
 						dispatcher.dispatch(effect, this.context);
 					}
 				}

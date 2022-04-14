@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace PNEventEngine
@@ -12,12 +11,11 @@ namespace PNEventEngine
 			effectActionMap = new Dictionary<EffectType, IEffectHandler>();
 		}
 
-		public void dispatch(EffectType effect, ExtendedState stateContext)
+		public async void dispatch(EffectType effect, ExtendedState stateContext)
 		{
 			IEffectHandler handler;
 			if (effectActionMap.TryGetValue(effect, out handler)) {
-				handler.Start(stateContext);	// TODO: Refactor - Some Threading specific
-				//await handler.Start(stateContext);
+				await Task.Run(()=> handler.Start(stateContext));
 			}
 		}
 

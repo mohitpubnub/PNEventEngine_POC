@@ -24,6 +24,8 @@ namespace PNEventEngine
 
 			effectDispatcher.Register(EffectType.SendHandshakeRequest, handshakeEffect);
 
+			effectDispatcher.Register(EffectType.ReceiveEventRequest, receivingEffect);
+
 			effectDispatcher.Register(EffectType.ReconnectionAttempt, reconnectionEffect);
 
 			var engine = new EventEngine(effectDispatcher, eventEmitter);
@@ -40,6 +42,14 @@ namespace PNEventEngine
 				.On(EventType.HandshakeSuccess, StateType.Receiving)
 				.On(EventType.HandshakeFailed, StateType.Reconnecting)
 				.Effect(EffectType.SendHandshakeRequest);
+
+			engine.CreateState(StateType.Receiving)
+				.OnEntry(() => { Console.WriteLine("Receiving: OnEntry()"); return true; })
+				.OnExit(() => { Console.WriteLine("Receiving: OnExit()"); return true; })
+				.On(EventType.SubscriptionChange, StateType.Handshaking)
+				.On(EventType.ReceiveSuccess, StateType.Receiving)
+				.On(EventType.ReceiveFailed, StateType.Reconnecting)
+				.Effect(EffectType.ReceiveEventRequest);
 
 			engine.CreateState(StateType.HandshakingFailed)
 				.OnEntry(() => { Console.WriteLine("HandshakingFailed: OnEntry()"); return true; })
@@ -60,6 +70,7 @@ namespace PNEventEngine
 			engine.Subscribe(new List<string> { "ch1", "ch2"}, null);
 
 			Console.WriteLine("In Program!");
+			Console.ReadLine();
 		}
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace PNEventEngine
@@ -27,6 +28,9 @@ namespace PNEventEngine
 
 		public async void Start(ExtendedState context)
 		{
+			if (cancellationTokenSource != null && cancellationTokenSource.Token.CanBeCanceled) {
+				Cancel();
+			}
 			cancellationTokenSource = new CancellationTokenSource();
 			var evnt = new Event();
 			// TODO: Replace with stateless Utility method...
@@ -37,8 +41,9 @@ namespace PNEventEngine
 				evnt.EventPayload.Region = receivedResponse.Timetoken.Region;
 				evnt.Type = EventType.ReceiveSuccess;
 
-				if(receivedResponse.Messages!=null)
-				Console.WriteLine($"Received Messages {receivedResponse.Messages}");	//WIP: Define "DELIVERING" Effect. and transition
+				if (receivedResponse.Messages != null)
+					Console.WriteLine($"Received Messages {receivedResponse.Messages}");    //WIP: Define "DELIVERING" Effect. and transition
+
 			} catch (Exception ex) {
 				evnt.EventPayload.exception = ex;
 			}
