@@ -37,7 +37,6 @@ namespace PNEventEngine
 		public async void Start(ExtendedState context)
 		{
 			var evnt = new Event();
-			// TODO: Replace with Stateless Utility Methods
 			try {
 				var res = await httpClient.GetAsync($"https://ps.pndsn.com/v2/subscribe/demo/{String.Join(",", context.Channels.ToArray())}/0?uuid=cSharpTest&tt=0&tr=0&channel-group={String.Join(", ", context.ChannelGroups.ToArray())}");
 				var handshakeResponse = JsonConvert.DeserializeObject<HandshakeResponse>(await res.Content.ReadAsStringAsync());

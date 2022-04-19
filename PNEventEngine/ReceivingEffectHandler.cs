@@ -33,7 +33,6 @@ namespace PNEventEngine
 			}
 			cancellationTokenSource = new CancellationTokenSource();
 			var evnt = new Event();
-			// TODO: Replace with stateless Utility method...
 			try {
 				var res = await httpClient.GetAsync($"https://ps.pndsn.com/v2/subscribe/demo/{String.Join(",", context.Channels.ToArray())}/0?uuid=cSharpTest&channel-group={String.Join(",", context.ChannelGroups.ToArray())}&tt={context.Timetoken}&tr={context.Region}", cancellationTokenSource.Token);
 				var receivedResponse = JsonConvert.DeserializeObject<ReceiveingResponse>(await res.Content.ReadAsStringAsync());
@@ -45,6 +44,7 @@ namespace PNEventEngine
 					Console.WriteLine($"Received Messages {receivedResponse.Messages}");    //WIP: Define "DELIVERING" Effect. and transition
 
 			} catch (Exception ex) {
+				evnt.Type = EventType.ReceiveFailed;
 				evnt.EventPayload.exception = ex;
 			}
 			emitter.emit(evnt);
