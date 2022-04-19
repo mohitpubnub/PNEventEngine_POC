@@ -5,7 +5,8 @@
 	{
 		SendHandshakeRequest,  // oneshot
 		ReceiveEventRequest,   // long running
-		ReconnectionAttempt
+		ReceiveReconnection,
+		HandshakeReconnection
 	}
 
 	public interface IEffectHandler
