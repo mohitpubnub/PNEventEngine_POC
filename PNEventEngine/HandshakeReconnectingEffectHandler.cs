@@ -35,10 +35,11 @@ namespace PNEventEngine
 				var handshakeResponse = JsonConvert.DeserializeObject<HandshakeResponse>(await res.Content.ReadAsStringAsync());
 				evnt.EventPayload.Timetoken = handshakeResponse.Timetoken.Timestamp;
 				evnt.EventPayload.Region = handshakeResponse.Timetoken.Region;
+				evnt.EventPayload.ReconnectionAttemptsMade = 0;
 				evnt.Type = EventType.HandshakeSuccess;
 			} catch (Exception ex) {
 				evnt.Type = EventType.HandshakeReconnectionFailed;
-				evnt.EventPayload.ReconnectionAttemptsMade += 1;
+				evnt.EventPayload.ReconnectionAttemptsMade = context.AttemptedReconnection + 1;
 				evnt.EventPayload.exception = ex;
 			}
 			emitter.emit(evnt);

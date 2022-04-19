@@ -52,24 +52,18 @@ namespace PNEventEngine
 			engine.CreateState(StateType.Receiving)
 				.OnEntry(() => { Console.WriteLine("Receiving: OnEntry()"); return true; })
 				.OnExit(() => { Console.WriteLine("Receiving: OnExit()"); return true; })
-				.On(EventType.SubscriptionChange, StateType.Handshaking)
+				.On(EventType.SubscriptionChange, StateType.Receiving)
 				.On(EventType.ReceiveSuccess, StateType.Receiving)
 				.On(EventType.ReceiveFailed, StateType.Reconnecting)
 				.Effect(EffectType.ReceiveEventRequest);
 
-			engine.CreateState(StateType.HandshakingFailed)
-				.OnEntry(() => { Console.WriteLine("HandshakingFailed: OnEntry()"); return true; })
-				.OnExit(() => { Console.WriteLine("HandshakingFailed: OnExit()"); return true; })
-				.On(EventType.SubscriptionChange, StateType.Handshaking)
-				.On(EventType.HandshakeSuccess, StateType.Receiving)
-				.On(EventType.HandshakeFailed, StateType.Reconnecting);
-
 			engine.CreateState(StateType.Reconnecting)
 				.OnEntry(() => { Console.WriteLine("Reconnecting: OnEntry()"); return true; })
 				.OnExit(() => { Console.WriteLine("Reconnecting: OnExit()"); return true; })
-				.On(EventType.SubscriptionChange, StateType.Handshaking)        //TODO:: ???? Should it be Receving only?
+				.On(EventType.SubscriptionChange, StateType.Receiving)
 				.On(EventType.ReconnectionFailed, StateType.Reconnecting)
 				.On(EventType.ReceiveSuccess, StateType.Receiving)
+				.On(EventType.Giveup, StateType.ReconnectingFailed)
 				.Effect(EffectType.ReceiveReconnection);
 
 			engine.CreateState(StateType.HandshakeReconnecting)
@@ -78,7 +72,20 @@ namespace PNEventEngine
 				.On(EventType.SubscriptionChange, StateType.Handshaking)
 				.On(EventType.HandshakeReconnectionFailed, StateType.HandshakeReconnecting)
 				.On(EventType.HandshakeSuccess, StateType.Receiving)
+				.On(EventType.Giveup, StateType.HandshakingFailed)
 				.Effect(EffectType.HandshakeReconnection);
+
+			engine.CreateState(StateType.HandshakingFailed)
+				.OnEntry(() => { Console.WriteLine("HandshakingFailed: OnEntry()"); return true; })
+				.OnExit(() => { Console.WriteLine("HandshakingFailed: OnExit()"); return true; })
+				.On(EventType.SubscriptionChange, StateType.Handshaking)			
+				.On(EventType.Restore, StateType.HandshakeReconnecting);
+
+			engine.CreateState(StateType.ReconnectingFailed)
+				.OnEntry(() => { Console.WriteLine("ReconnectingFailed: OnEntry()"); return true; })
+				.OnExit(() => { Console.WriteLine("ReconnectingFailed: OnExit()"); return true; })
+				.On(EventType.SubscriptionChange, StateType.Receiving)
+				.On(EventType.Restore, StateType.Reconnecting);
 
 			engine.InitialState(initState);
 

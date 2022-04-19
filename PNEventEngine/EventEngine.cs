@@ -35,7 +35,8 @@ namespace PNEventEngine
 		ReceiveFailed,
 		ReconnectionFailed,
 		HandshakeReconnectionFailed,
-		Giveup
+		Giveup,
+		Restore
 	}
 
 	public class ExtendedState
@@ -91,7 +92,6 @@ namespace PNEventEngine
 				CurrentState = this.States.Find((s) => s.Type == nextStateType);
 				UpdateContext(e.EventPayload);
 				CurrentState.Entry();
-				UpdateContext(e.EventPayload);
 				if (CurrentState.Effects.Count > 0) {
 					foreach (var effect in CurrentState.Effects) {
 						dispatcher.dispatch(effect, this.context);
@@ -106,6 +106,13 @@ namespace PNEventEngine
 			evnt.Type = EventType.SubscriptionChange;
 			evnt.EventPayload.Channels = channels;
 			if (channelGroups != null) evnt.EventPayload.ChannelGroups = channelGroups;
+			this.Transition(evnt);
+		}
+
+		public void Restore()
+		{
+			var evnt = new Event();
+			evnt.Type = EventType.Restore;
 			this.Transition(evnt);
 		}
 

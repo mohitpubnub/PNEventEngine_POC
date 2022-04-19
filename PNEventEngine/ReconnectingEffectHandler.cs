@@ -77,6 +77,7 @@ namespace PNEventEngine
 				var receivedResponse = JsonConvert.DeserializeObject<ReceiveingResponse>(await res.Content.ReadAsStringAsync());
 				evnt.EventPayload.Timetoken = receivedResponse.Timetoken.Timestamp;
 				evnt.EventPayload.Region = receivedResponse.Timetoken.Region;
+				evnt.EventPayload.ReconnectionAttemptsMade = 0;
 				evnt.Type = EventType.ReceiveSuccess;
 
 				if (receivedResponse.Messages != null)
@@ -84,7 +85,7 @@ namespace PNEventEngine
 
 			} catch (Exception ex) {
 				evnt.Type = EventType.ReconnectionFailed;
-				evnt.EventPayload.ReconnectionAttemptsMade += 1;
+				evnt.EventPayload.ReconnectionAttemptsMade = context.AttemptedReconnection + 1;
 				evnt.EventPayload.exception = ex;
 			}
 			emitter.emit(evnt);
